@@ -1,1 +1,5 @@
+# Java compiled code
 *.class
+
+# Folder which should be used for temporary working files
+sandbox/
