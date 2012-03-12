@@ -201,6 +201,7 @@ public class MigrationMssql extends MigrationGeneric {
 		if (!migrateColumnParamsToMySql(targetColumn, migrationParams)) {
 			// character types
 			if (sourceDatatypeName.equalsIgnoreCase("VARCHAR")
+					|| sourceDatatypeName.equalsIgnoreCase("MAXVARCHAR") // AlexD. Not sure that we need this
 					|| sourceDatatypeName.equalsIgnoreCase("NVARCHAR")
 					|| sourceDatatypeName.equalsIgnoreCase("TEXT")
 					|| sourceDatatypeName.equalsIgnoreCase("NTEXT")) {
@@ -219,6 +220,10 @@ public class MigrationMssql extends MigrationGeneric {
 				} else {
 					// long text
 					targetColumn.setDatatypeName("LONGTEXT");
+				}				
+				// AlexD. Try keep it safe.
+				if (sourceColumn.getLength() == -1 || targetColumn.getLength() == -1) {
+					targetColumn.setDatatypeName("LONGTEXT");
 				}
 			} else if (sourceDatatypeName.equalsIgnoreCase("CHAR")
 					|| sourceDatatypeName.equalsIgnoreCase("NCHAR")) {
@@ -235,7 +240,7 @@ public class MigrationMssql extends MigrationGeneric {
 			else if (sourceDatatypeName.equalsIgnoreCase("IMAGE")
 					|| sourceDatatypeName.equalsIgnoreCase("BINARY")
 					|| sourceDatatypeName.equalsIgnoreCase("VARBINARY")) {
-				if (sourceColumn.getLength() < 256) {
+				if (sourceColumn.getLength() < 256 && sourceColumn.getLength() != -1) { // AlexD. Check against -1 len because of varbinary(-1) issue.
 					if (sourceDatatypeName.equalsIgnoreCase("IMAGE")) {
 						// tiny blob up to 255 byte
 						targetColumn.setDatatypeName("TINYBLOB");
@@ -246,7 +251,7 @@ public class MigrationMssql extends MigrationGeneric {
 						// tiny blob up to 255 byte
 						targetColumn.setDatatypeName("VARBINARY");
 					}
-				} else if (sourceColumn.getLength() < 65536) {
+				} else if (sourceColumn.getLength() < 65536 && sourceColumn.getLength() != -1) { // AlexD. Check against -1 len because of varbinary(-1) issue.
 					// medium blob up to 65535 byte
 					targetColumn.setDatatypeName("MEDIUMBLOB");
 				} else {
@@ -269,7 +274,9 @@ public class MigrationMssql extends MigrationGeneric {
 			}
 			// datetime types
 			else if (sourceDatatypeName.equalsIgnoreCase("DATETIME")
-					|| sourceDatatypeName.equalsIgnoreCase("SMALLDATETIME")) {
+					|| sourceDatatypeName.equalsIgnoreCase("SMALLDATETIME")
+					|| sourceDatatypeName.equalsIgnoreCase("DATETIME2")
+					|| sourceDatatypeName.equalsIgnoreCase("TIME")) {
 				if (sourceColumn.getDefaultValue() != null
 						&& sourceColumn.getDefaultValue().equalsIgnoreCase(
 								"getdate()")) {

@@ -1878,7 +1878,7 @@ public class MigrationGeneric {
 						} else if (colTypes[i] == java.sql.Types.DATE) {
 							Timestamp value = rset.getTimestamp(i + 1);
 
-							if (value != null) {
+							if (value != null && !value.equals(new Timestamp(0))) {
 								insert.append("'");
 								insert.append(dateFormat.format(value));
 								insert.append("'");
@@ -1887,7 +1887,7 @@ public class MigrationGeneric {
 						} else if (colTypes[i] == java.sql.Types.TIME) {
 							Time value = rset.getTime(i + 1);
 
-							if (value != null) {
+							if (value != null && !value.equals(new Timestamp(0))) {
 								insert.append("'");
 								insert.append(timeFormat.format(value));
 								insert.append("'");
@@ -1942,7 +1942,7 @@ public class MigrationGeneric {
 						} else if (colTypes[i] == java.sql.Types.DATE) {
 							Date value = rset.getDate(i + 1);
 
-							if (value != null) {
+							if (value != null && !value.equals(new Date(0))) {
 								insert.append("'");
 								insert.append(dateFormat.format(value));
 								insert.append("'");
@@ -1965,10 +1965,9 @@ public class MigrationGeneric {
 							if (columnTypeName.equalsIgnoreCase("BIT")) {
 								insert.append(rset.getString(i + 1));
 							} else if (columnTypeName.equalsIgnoreCase("DATE")
-									|| columnTypeName
-											.equalsIgnoreCase("DATETIME")
-									|| columnTypeName
-											.equalsIgnoreCase("SMALLDATETIME")
+									|| columnTypeName.equalsIgnoreCase("DATETIME")
+									|| columnTypeName.equalsIgnoreCase("DATETIME2")
+									|| columnTypeName.equalsIgnoreCase("SMALLDATETIME")
 									|| (columnTypeName.indexOf("TIMESTAMP") > -1)) {
 								Timestamp value;
 
@@ -1983,7 +1982,8 @@ public class MigrationGeneric {
 									}
 								}
 
-								if (value != null) {
+								// AlexD add check against zero timestamp.
+								if (value != null && !value.equals(new Timestamp(0))) {
 									insert.append("'");
 									insert.append(dateFormat.format(value));
 									insert.append("'");
