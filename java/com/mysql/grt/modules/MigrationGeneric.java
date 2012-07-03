@@ -1864,10 +1864,25 @@ public class MigrationGeneric {
 						} else if ((colTypes[i] == java.sql.Types.LONGVARCHAR)
 								|| (colTypes[i] == java.sql.Types.VARCHAR)
 								|| (colTypes[i] == java.sql.Types.CHAR)) {
-							String value = rset.getString(i + 1);
-
-							if (doRightTrimForText)
-								value = value.replaceAll("\\s+$", "");
+							// Original database contains data using wrong data types.
+							// The varchar fields may have data saved in "ANSI as UTF-8" format.
+							// Because of this instead of getting just string value we have read byte array
+							// And then using UTF-8 encoder read this data.
+							// If UTF-8 encoding didn't work (\uFFFD symbol was found) then fallback into ANSI encoding.
+							// Original call: String value = rset.getString(i + 1);
+							byte[] stringAsByteArray = rset.getBytes(i + 1);
+							String value = "";
+							if (stringAsByteArray != null && stringAsByteArray.length > 0) {
+								value = new String(stringAsByteArray, "UTF-8");
+								
+								// Unicode symbol with code \uFFFD look like this one - �
+								String unicodeReplacementChar = "\uFFFD";
+								if (value.contains(unicodeReplacementChar))
+									value = rset.getString(i + 1);
+								
+								if (doRightTrimForText && value != null)
+									value = value.replaceAll("\\s+$", "");
+							}
 
 							if (value != null) {
 								insert.append("'");
@@ -1887,7 +1902,7 @@ public class MigrationGeneric {
 						} else if (colTypes[i] == java.sql.Types.TIME) {
 							Time value = rset.getTime(i + 1);
 
-							if (value != null && !value.equals(new Timestamp(0))) {
+							if (value != null && !value.equals(new Time(0))) {
 								insert.append("'");
 								insert.append(timeFormat.format(value));
 								insert.append("'");

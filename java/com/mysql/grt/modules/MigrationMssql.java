@@ -275,8 +275,7 @@ public class MigrationMssql extends MigrationGeneric {
 			// datetime types
 			else if (sourceDatatypeName.equalsIgnoreCase("DATETIME")
 					|| sourceDatatypeName.equalsIgnoreCase("SMALLDATETIME")
-					|| sourceDatatypeName.equalsIgnoreCase("DATETIME2")
-					|| sourceDatatypeName.equalsIgnoreCase("TIME")) {
+					|| sourceDatatypeName.equalsIgnoreCase("DATETIME2")) {
 				if (sourceColumn.getDefaultValue() != null
 						&& sourceColumn.getDefaultValue().equalsIgnoreCase(
 								"getdate()")) {
@@ -284,6 +283,9 @@ public class MigrationMssql extends MigrationGeneric {
 					targetColumn.setDefaultValue("CURRENT_TIMESTAMP");
 				} else
 					targetColumn.setDatatypeName("DATETIME");
+			}
+			else if (sourceDatatypeName.equalsIgnoreCase("TIME")) {
+				targetColumn.setDatatypeName("TIME");
 			}
 			// timestamp types
 			else if (sourceDatatypeName.equalsIgnoreCase("TIMESTAMP")) {
